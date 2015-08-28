@@ -20,12 +20,15 @@ package goavro
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
 const (
 	nullNamespace = ""
 )
+
+var namespaceSplitter = regexp.MustCompile("\\.")
 
 type name struct {
 	n   string // name
@@ -113,7 +116,19 @@ func checkName(s string) error {
 
 func nameName(someName string) nameSetter {
 	return func(n *name) (err error) {
-		if err = checkName(someName); err == nil {
+		// if this name is fully qualified (prepended with a namespace),
+		// we do no validation on the namespace portion whatsoever.
+		// this behavior is consistent with the Java Avro implementation,
+		// but *not* with the current Avro spec which states:
+		// > A namespace is a dot-separated sequence of such names.
+		// referring to an Avro name (the rules for which are captured correctly in checkName).
+		nameWithoutNamespace := someName
+		if strings.Contains(someName, ".") {
+			parts := namespaceSplitter.Split(someName, -1)
+			nameWithoutNamespace = parts[len(parts)-1]
+		}
+
+		if err = checkName(nameWithoutNamespace); err == nil {
 			n.n = someName
 		}
 		return
