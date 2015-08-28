@@ -172,8 +172,11 @@ func TestRecordGetFieldSchema(t *testing.T) {
 	outerRecord, err := NewRecord(RecordSchema(outerSchema))
 	checkErrorFatal(t, err, nil)
 	// make sure it bails when no such schema
-	_, err = outerRecord.GetFieldSchema("no-such-field")
-	checkError(t, err, "no such field: no-such-field")
+	_, err = outerRecord.GetFieldSchema("no_such_field")
+	checkError(t, err, "no such field: no_such_field")
+	// make sure it bails when passed an invalid field name
+	_, err = outerRecord.GetFieldSchema("dashes-aint-valid-hoss")
+	checkError(t, err, "passed invalid fieldName dashes-aint-valid-hoss")
 	// get the inner schema
 	schema, err := outerRecord.GetFieldSchema("rec")
 	checkErrorFatal(t, err, nil)
